@@ -14,7 +14,7 @@ public class InterpartyRelationshipRead {
 
 	@Override
 	public String toString() {
-		return "ContractRead [id=" + id + "]";
+		return "InterpartyRelationshipRead [id=" + id + "]";
 	}
 
 }
