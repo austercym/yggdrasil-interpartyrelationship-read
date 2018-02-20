@@ -45,7 +45,7 @@ import com.orwellg.yggdrasil.interpartyrelationship.topology.bolts.ReadInterpart
 public class ReadInterpartyRelationshipTopology {
 
 
-	private static final String INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME = "interpartyrelationship-read";
+	private static final String INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME = "yggdrasil-interpartyrelationship-read";
 
 	public static final String KAFKA_EVENT_PRODUCER_COMPONENT_ID = "interpartyrelationship-read-kafka-event-producer";
 	public static final String KAFKA_EVENT_GENERATOR_COMPONENT_ID = "interpartyrelationship-read-kafka-event-generator";
