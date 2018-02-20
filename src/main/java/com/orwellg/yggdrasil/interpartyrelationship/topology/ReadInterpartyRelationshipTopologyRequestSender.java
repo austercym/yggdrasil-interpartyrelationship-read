@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -12,7 +11,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.LogManager;
@@ -24,12 +22,13 @@ import com.orwellg.umbrella.avro.types.event.EntityIdentifierType;
 import com.orwellg.umbrella.avro.types.event.Event;
 import com.orwellg.umbrella.avro.types.event.EventType;
 import com.orwellg.umbrella.avro.types.event.ProcessIdentifierType;
+import com.orwellg.umbrella.commons.storm.config.topology.TopologyConfig;
 import com.orwellg.umbrella.commons.storm.config.topology.TopologyConfigFactory;
 import com.orwellg.umbrella.commons.types.scylla.entities.InterPartyRelationship;
-import com.orwellg.umbrella.commons.types.scylla.entities.PartyContract;
 import com.orwellg.umbrella.commons.types.utils.avro.RawMessageUtils;
 import com.orwellg.umbrella.commons.utils.constants.Constants;
 import com.orwellg.umbrella.commons.utils.enums.InterpartyRelationshipEvents;
+import com.orwellg.umbrella.commons.utils.kafka.SimpleKafkaConsumerProducerFactory;
 
 public class ReadInterpartyRelationshipTopologyRequestSender {
 
@@ -39,26 +38,41 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 
 	public static void main(String[] args) {
 		String id = null;
-		if (args.length >= 1) {
-			id = args[0];
-			LOG.info("Element ID parameter received = {}", id);
+		String zookeeperhost = "";
+		
+		if(args == null)
+			throw new IllegalArgumentException("Incorrect arguments. Use: zookeeperhost <InterpartyRelationshipId>");
+		
+		switch(args.length) {
+		case 1:{
+			id = "ID1";
+			zookeeperhost = args[0];
+			break;
+		}
+		case 2:{
+			id = args[1];
+			zookeeperhost = args[0];
+			break;
+		}			
+		default:
+			throw new IllegalArgumentException("Incorrect arguments. Use: zookeeperhost <InterpartyRelationshipId>");
 		}
 
 		// Send request and wait response in specific topics
 		ReadInterpartyRelationshipTopologyRequestSender test = new ReadInterpartyRelationshipTopologyRequestSender();
 		
 		LOG.info("Requesting Party with ID = {} to topology...", id);
-		List<InterPartyRelationship> c = test.requestAndWaitResponseInterpartyRelationship(id);
+		InterPartyRelationship c = (InterPartyRelationship) test.requestAndWaitResponseInterpartyRelationship(InterpartyRelationshipEvents.GET_INTERPARTYRELATIONSHIP, id, TopologyConfigFactory.getTopologyConfig(null, zookeeperhost));
 		
 		// Print result
 		LOG.info("Retrieved balance = {}", c);
 	}
 
 
-	public List<InterPartyRelationship> requestAndWaitResponseInterpartyRelationship(String id) {
-		String bootstrapServer = TopologyConfigFactory.getTopologyConfig().getKafkaBootstrapHosts();
-		KafkaConsumer<String, String> consumer = makeConsumer(bootstrapServer);
-		Producer<String, String> producer = makeProducer(bootstrapServer);
+	public Object requestAndWaitResponseInterpartyRelationship(InterpartyRelationshipEvents eventType, String id, TopologyConfig config) {
+		
+		KafkaConsumer<String, String> consumer = SimpleKafkaConsumerProducerFactory.createConsumer(config.getKafkaConfig());
+		Producer<String, String> producer = SimpleKafkaConsumerProducerFactory.createProducer(config.getKafkaConfig());
 
 		// Generate event
 		String parentKey = this.getClass().getName();
@@ -66,7 +80,7 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 		String uuid = UUID.randomUUID().toString();
 		String eventKeyId = "EVENT-" + uuid;
 		LOG.info("eventKeyId = {}", eventKeyId);
-		String eventName = InterpartyRelationshipEvents.GET_INTERPARTYRELATIONSHIP.getEventName();
+		String eventName = eventType.getEventName();
 		
 		// Send Id as eventData
 		String serializedId = "{\"id\": " + id + " }";
@@ -77,7 +91,7 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 		LOG.info("Encoded message: " + base64Event);
 		
 		// Write event to kafka topic.
-		String topic = TopologyConfigFactory.getTopologyConfig().getKafkaSubscriberSpoutConfig().getTopic().getName().get(0);
+		String topic = config.getKafkaSubscriberSpoutConfig().getTopic().getName().get(0);
 		LOG.info("Sending event {} to topic {}...", event, topic);
 		producer.send(new ProducerRecord<String, String>(topic, base64Event));
 		LOG.info("Event {} sent to topic {}.", event, topic);
@@ -90,10 +104,10 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 		
 		// Check if topology returns kafka result event
 		LOG.info("Checking if topology has returned to kafka topic...");
-		String responseTopic = TopologyConfigFactory.getTopologyConfig().getKafkaPublisherBoltConfig().getTopic().getName().get(0);
+		String responseTopic = config.getKafkaPublisherBoltConfig().getTopic().getName().get(0);
 		consumer.subscribe(Arrays.asList(responseTopic));
 		
-		List<InterPartyRelationship> result = waitAndConsume(eventKeyId, maxRetries, retries, interval, consumer);
+		Object result = waitAndConsume(eventKeyId, maxRetries, retries, interval, consumer);
 		if (result != null) {
 			LOG.info("CORRECT Response for eventKeyId = {} found, result = {}.", eventKeyId, result);
 		} else {
@@ -104,41 +118,6 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 		return result;
 	}
 	
-
-	protected KafkaConsumer<String, String> makeConsumer(String bootstrapServer) {
-		Properties propsC = new Properties();
-		propsC.put("bootstrap.servers", bootstrapServer);
-		propsC.put("acks", "all");
-		propsC.put("retries", 0);
-		propsC.put("batch.size", 16384);
-		propsC.put("linger.ms", 1);
-		propsC.put("buffer.memory", 33554432);
-		propsC.put("group.id", "test");
-		propsC.put("enable.auto.commit", "true");
-		propsC.put("auto.commit.interval.ms", "1000");
-		propsC.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		propsC.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(propsC);
-		return consumer;
-	}
-
-	protected Producer<String, String> makeProducer(String bootstrapServer) {
-		// Using kafka-clients library:
-		// https://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html
-		Properties propsP = new Properties();
-		propsP.put("bootstrap.servers", bootstrapServer);
-		// props.put("bootstrap.servers", "172.31.17.121:6667");
-		propsP.put("acks", "all");
-		propsP.put("retries", 0);
-		propsP.put("batch.size", 16384);
-		propsP.put("linger.ms", 1);
-		propsP.put("buffer.memory", 33554432);
-		propsP.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		propsP.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		Producer<String, String> producer = new KafkaProducer<>(propsP);
-		return producer;
-	}
-
 	/**
 	 * Based on KafkaEventGeneratorBolt.generateEvent(), modified for this test.
 	 * 
@@ -185,10 +164,10 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 		return event;
 	}
 
-	protected List<InterPartyRelationship> waitAndConsume(String eventKeyId, int maxRetries, int retries,
+	protected Object waitAndConsume(String eventKeyId, int maxRetries, int retries,
 			int interval, KafkaConsumer<String, String> consumer) {
 		
-		List<InterPartyRelationship> result = null;
+		Object result = null;
 		
 		while (result == null && retries < maxRetries) {
 			
@@ -200,7 +179,18 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 				// Check if eventKeyId of the request matches the parent of the response
 
 				if (eventKeyId.equals(responseEvent.getEvent().getParentKey().toString())) {
-					result = gson.fromJson(eventDataStr, new TypeToken<List<InterPartyRelationship>>(){}.getType());
+					InterpartyRelationshipEvents event = InterpartyRelationshipEvents.fromString(responseEvent.getEvent().getName());
+					switch(event) {
+					case GET_INTERPARTYRELATIONSHIP:{
+						result = gson.fromJson(eventDataStr, new TypeToken<InterPartyRelationship>(){}.getType());
+						break;
+					}
+					case LIST_INTERPARTYRELATIONSHIP:{
+						result = gson.fromJson(eventDataStr, new TypeToken<List<InterPartyRelationship>>(){}.getType());
+						break;
+					}
+					}
+					
 				}
 				
 			}

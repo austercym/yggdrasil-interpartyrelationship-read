@@ -68,6 +68,8 @@ public class ReadInterpartyRelationshipTopology {
 	 */
 	public static void main(String[] args) throws Exception {
 		boolean local = false;
+		String zookeeperhost = "";
+		
 		if (args.length >= 1 && args[0].equals("local")) {
 			LOG.info("*********** Local parameter received, will work with LocalCluster ************");
 			local = true;
@@ -80,13 +82,29 @@ public class ReadInterpartyRelationshipTopology {
 			cluster.shutdown();
 			ZookeeperUtils.close();
 		} else {
-			loadTopologyInStorm();
+			if(args.length >= 1) {
+				LOG.info("*********** Set Zookeeper host by parameter {} ************", zookeeperhost);
+				loadTopologyInStorm(zookeeperhost);
+			}
+			else {
+				LOG.info("*********** Set topology with default properties ************");
+				loadTopologyInStorm();
+			}
 		}
 
 	}
 
+	public static void loadTopologyInStorm(LocalCluster cluster) throws Exception {
+		loadTopologyInStorm(cluster, null, null);		
+	}
+
+	public static void loadTopologyInStorm(String zookeeperhost) throws Exception {
+		loadTopologyInStorm(null, zookeeperhost, null);
+		
+	}
+
 	public static void loadTopologyInStorm() throws Exception {
-		loadTopologyInStorm(null);
+		loadTopologyInStorm(null, null, null);
 	}
 
 	/**
@@ -98,11 +116,11 @@ public class ReadInterpartyRelationshipTopology {
 	 * @param localCluster
 	 *            null to submit to remote cluster.
 	 */
-	public static void loadTopologyInStorm(LocalCluster localCluster) throws Exception {
+	public static void loadTopologyInStorm(LocalCluster localCluster, String zookeeperHost, String propertyFile) throws Exception {
 		LOG.info("Creating {} topology...", INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME);
 
 		// Read configuration params from topology.properties and zookeeper
-		TopologyConfig config = TopologyConfigFactory.getTopologyConfig();
+		TopologyConfig config = TopologyConfigFactory.getTopologyConfig(propertyFile, zookeeperHost);
 
 		// Create the spout that read the events from Kafka
 		GSpout kafkaEventReader = new GSpout(KAFKA_EVENT_READER_COMPONENT_ID,
@@ -118,7 +136,7 @@ public class ReadInterpartyRelationshipTopology {
 
 		// GetParty bolt
 		GenericGrouping interPartyRelationshipEventGroup = new ShuffleGrouping(KAFKA_EVENT_SUCCESS_PROCESS_COMPONENT_ID);
-		GBolt<?> interPartyRelationshipBolt = new GRichBolt(INTERPARTYRELATIONSHIP_READ_COMPONENT_ID, new ReadInterpartyRelationshipBolt(null), config.getEventProcessHints());
+		GBolt<?> interPartyRelationshipBolt = new GRichBolt(INTERPARTYRELATIONSHIP_READ_COMPONENT_ID, new ReadInterpartyRelationshipBolt(propertyFile, zookeeperHost), config.getEventProcessHints());
 		// Link to the former bolt
 		interPartyRelationshipBolt.addGrouping(interPartyRelationshipEventGroup);
 

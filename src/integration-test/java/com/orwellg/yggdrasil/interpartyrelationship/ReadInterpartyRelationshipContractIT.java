@@ -20,7 +20,9 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Session;
 import com.orwellg.umbrella.commons.config.params.ScyllaParams;
 import com.orwellg.umbrella.commons.repositories.scylla.ScyllaDbHelper;
+import com.orwellg.umbrella.commons.storm.config.topology.TopologyConfigFactory;
 import com.orwellg.umbrella.commons.types.scylla.entities.InterPartyRelationship;
+import com.orwellg.umbrella.commons.utils.enums.InterpartyRelationshipEvents;
 import com.orwellg.umbrella.commons.utils.scylla.ScyllaManager;
 import com.orwellg.umbrella.commons.utils.uniqueid.UniqueIDGenerator;
 import com.orwellg.umbrella.commons.utils.zookeeper.ZooKeeperHelper;
@@ -43,6 +45,7 @@ public class ReadInterpartyRelationshipContractIT {
 	protected static Session ses;
 
 	protected final static String partycontractID = "3ID";
+	protected final static String partyID = "1PARTYID1";
 
 	protected String bootstrapHosts = "localhost:9092";
 	private final static Logger LOG = LogManager.getLogger(ReadInterpartyRelationshipContractIT.class);
@@ -91,51 +94,55 @@ public class ReadInterpartyRelationshipContractIT {
 		ReadInterpartyRelationshipTopology.loadTopologyInStorm(cluster);
 		
 		Thread.sleep(10000);
-
-		String clusterConfiguration = "localhost:9042";
-		ScyllaManager man = ScyllaManager.getInstance(clusterConfiguration);
-		ses = man.getSession("system");
-
-		String selectQueryKeyspace = "CREATE KEYSPACE ipagoo WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'datacenter1' : 1 };";
-		PreparedStatement stKeyspace = ses.prepare(selectQueryKeyspace);
-		BoundStatement selectKeyspace = stKeyspace.bind();
-		ses.execute(selectKeyspace);
-
-		///////
 		
-		Session session = ScyllaManager.getInstance(scyllaNodes).getCluster().connect();
-		ScyllaDbHelper scyllaDbHelper = new ScyllaDbHelper(session);
-		scyllaDbHelper.createDbSchema("/DataModel/ScyllaDB/scylla_obs_datamodel.cql", ";");
+		ScyllaManager man = ScyllaManager.getInstance(scyllaNodes);
+		ses = man.getCluster().connect();
+				
+		ScyllaDbHelper scyllaDbHelper = new ScyllaDbHelper(ses);
+		scyllaDbHelper.createDbSchema("/DataModel/ScyllaDB/scylla_obs_datamodel.cql", ";", ScyllaParams.DEFAULT_SCYLA_KEYSPACE_CUSTOMER_PRODUCT_DB , scyllaKeyspace);
 		
 		///////
 				
-		String insertQueryInsert = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationshippartyid1 ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType) VALUES ( '1ID','1PARTYID1','1PARTYID2','EMPLOYEE');";
+		String insertQueryInsert = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationshippartyid1 ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType, UpdateVector) VALUES ( '1ID','1PARTYID1','1PARTYID2','EMPLOYEE', 49);";
 		PreparedStatement stInsert= ses.prepare(insertQueryInsert);
 		BoundStatement insert = stInsert.bind();
 		ses.execute(insert);
 
-		String insertQueryInsert2 = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationshippartyid1 ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType) VALUES ( '2ID','1PARTYID1','2PARTYID2','EMPLOYEE');";
+		String insertQueryInsert2 = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationshippartyid1 ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType, UpdateVector) VALUES ( '2ID','1PARTYID1','2PARTYID2','EMPLOYEE', 59);";
 		PreparedStatement stInsert2= ses.prepare(insertQueryInsert2);
 		BoundStatement insert2 = stInsert2.bind();
 		ses.execute(insert2);
 		
-		String insertQueryInsert3 = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationship ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType) VALUES ( '3ID','3PARTYID1','3PARTYID2','EMPLOYEE');";
+		String insertQueryInsert3 = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationship ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType, UpdateVector) VALUES ( '3ID','3PARTYID1','3PARTYID2','EMPLOYEE', 69);";
 		PreparedStatement stInsert3 = ses.prepare(insertQueryInsert3);
 		BoundStatement insert3 = stInsert3.bind();
 		ses.execute(insert3);
 		
+		String insertQueryInsert4 = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationship ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType, UpdateVector) VALUES ( '1ID','1PARTYID1','1PARTYID2','EMPLOYEE', 169);";
+		PreparedStatement stInsert4 = ses.prepare(insertQueryInsert4);
+		BoundStatement insert4 = stInsert4.bind();
+		ses.execute(insert4);
+		
+		String insertQueryInsert5 = "INSERT INTO " + scyllaKeyspace + ".interpartyrelationship ( Relationship_ID, Party_ID1, Party_ID2, RelationshipType, UpdateVector) VALUES ( '2ID','2PARTYID1','2PARTYID2','EMPLOYEE', 269);";
+		PreparedStatement stInsert5 = ses.prepare(insertQueryInsert5);
+		BoundStatement insert5 = stInsert5.bind();
+		ses.execute(insert5);
+		
 
 		ReadInterpartyRelationshipTopologyRequestSender test = new ReadInterpartyRelationshipTopologyRequestSender();
 		LOG.info("Requesting balance (Read Party Contract)");
-		List<InterPartyRelationship> balance = test.requestAndWaitResponseInterpartyRelationship(partycontractID);
+		InterPartyRelationship balance = (InterPartyRelationship) test.requestAndWaitResponseInterpartyRelationship(InterpartyRelationshipEvents.GET_INTERPARTYRELATIONSHIP ,partycontractID, TopologyConfigFactory.getTopologyConfig());
 
-		if (balance.size() > 0) {
-			result = "OK";
-		}
-
+		Assert.assertNotNull(balance);
+		
 		// Then Print result
-		LOG.info("Retrieved balance size = {}", balance.size());
-		Assert.assertEquals("OK", result);
+		LOG.info("InterpartyRelationship = {}", balance);
+		
+		List<InterPartyRelationship> list = (List<InterPartyRelationship>) test.requestAndWaitResponseInterpartyRelationship(InterpartyRelationshipEvents.LIST_INTERPARTYRELATIONSHIP ,partyID, TopologyConfigFactory.getTopologyConfig());
+		
+		Assert.assertEquals(2, list.size());
+		
+		LOG.info("List InterpartyRelationship = {}", list);
 	}	
 
 }

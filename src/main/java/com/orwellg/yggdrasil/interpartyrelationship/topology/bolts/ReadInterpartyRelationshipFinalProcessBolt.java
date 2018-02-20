@@ -55,10 +55,9 @@ public class ReadInterpartyRelationshipFinalProcessBolt extends BasicRichBolt {
 		LOG.info("{}Read InterpartyRelationship action Finished. Processing the results", logPreffix);
 
 		try {
-			List<InterPartyRelationship> product = (List<InterPartyRelationship>) input.getValueByField("result");
-
+			 
 			// Return Product Read
-			String result = gson.toJson(product);
+			String result = gson.toJson(input.getValueByField("result"));
 
 			LOG.info("{}Creating event {} to send to Kafka topic.", logPreffix, eventName);
 
