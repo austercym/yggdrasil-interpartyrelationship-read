@@ -83,6 +83,7 @@ public class ReadInterpartyRelationshipTopology {
 			ZookeeperUtils.close();
 		} else {
 			if(args.length >= 1) {
+				zookeeperhost = args[0];
 				LOG.info("*********** Set Zookeeper host by parameter {} ************", zookeeperhost);
 				loadTopologyInStorm(zookeeperhost);
 			}
