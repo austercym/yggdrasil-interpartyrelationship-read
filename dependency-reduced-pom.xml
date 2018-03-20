@@ -1,167 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>super-pom-read</artifactId>
+    <groupId>com.orwellg.yggdrasil</groupId>
+    <version>0.0.3</version>
+    <relativePath>pom.xml</relativePath>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.orwellg</groupId>
   <artifactId>yggdrasil-interpartyrelationship-read</artifactId>
   <name>yggdrasil-interpartyrelationship-read</name>
   <version>0.0.1-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
-  <build>
-    <resources>
-      <resource>
-        <filtering>true</filtering>
-        <directory>src/main/resources</directory>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration />
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <executable>java</executable>
-          <includeProjectDependencies>true</includeProjectDependencies>
-          <includePluginDependencies>false</includePluginDependencies>
-          <classpathScope>compile</classpathScope>
-          <mainClass>${storm.topology}</mainClass>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.9.1</version>
-        <executions>
-          <execution>
-            <id>add-integration-test-sources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/integration-test/java</source>
-              </sources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>add-integration-test-resources</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>add-test-resource</goal>
-            </goals>
-            <configuration>
-              <resources>
-                <resource>
-                  <filtering>true</filtering>
-                  <directory>src/integration-test/resources</directory>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.18</version>
-        <configuration>
-          <skipTests>${skip.unit.tests}</skipTests>
-          <excludes>
-            <exclude>**/*IT.java</exclude>
-          </excludes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.18</version>
-        <executions>
-          <execution>
-            <id>integration-tests</id>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-            <configuration>
-              <skipTests>${skip.integration.tests}</skipTests>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-  <profiles>
-    <profile>
-      <id>development</id>
-      <properties>
-        <storm.core.scope>compile</storm.core.scope>
-        <skip.unit.tests>false</skip.unit.tests>
-        <zookeeper.host>localhost:2181</zookeeper.host>
-        <skip.integration.tests>true</skip.integration.tests>
-        <kafka.bootstrap.host>localhost:9092,localhost:10092</kafka.bootstrap.host>
-      </properties>
-    </profile>
-    <profile>
-      <id>integration-test</id>
-      <properties>
-        <storm.core.scope>compile</storm.core.scope>
-        <skip.unit.tests>true</skip.unit.tests>
-        <build.profile.id>integration-test</build.profile.id>
-        <zookeeper.host>localhost:2181</zookeeper.host>
-        <skip.integration.tests>false</skip.integration.tests>
-      </properties>
-    </profile>
-    <profile>
-      <id>integration</id>
-      <properties>
-        <storm.core.scope>provided</storm.core.scope>
-        <skip.unit.tests>true</skip.unit.tests>
-        <zookeeper.host>hdf-node1:2181</zookeeper.host>
-        <skip.integration.tests>true</skip.integration.tests>
-        <kafka.bootstrap.host>hdf-node1:6667,hdf-node4:6667,hdf-node5:6667</kafka.bootstrap.host>
-      </properties>
-    </profile>
-    <profile>
-      <id>test-ovh</id>
-      <properties>
-        <storm.core.scope>provided</storm.core.scope>
-        <skip.unit.tests>true</skip.unit.tests>
-        <zookeeper.host>10.1.0.21:2181,10.1.0.23:2181,10.1.0.24:2181</zookeeper.host>
-        <skip.integration.tests>true</skip.integration.tests>
-      </properties>
-    </profile>
-  </profiles>
-  <repositories>
-    <repository>
-      <id>com.palantir</id>
-      <url>https://dl.bintray.com/palantir/releases</url>
-    </repository>
-  </repositories>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.storm</groupId>
+      <artifactId>storm-core</artifactId>
+      <version>1.1.1</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j</artifactId>
+          <groupId>log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-slf4j-impl</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-over-slf4j</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-core</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>log4j-api</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>kryo</artifactId>
+          <groupId>com.esotericsoftware</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>ring-cors</artifactId>
+          <groupId>ring-cors</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>disruptor</artifactId>
+          <groupId>com.lmax</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>servlet-api</artifactId>
+          <groupId>javax.servlet</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>info.cukes</groupId>
+      <artifactId>cucumber-java8</artifactId>
+      <version>1.2.5</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>cucumber-java</artifactId>
+          <groupId>info.cukes</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>info.cukes</groupId>
+      <artifactId>cucumber-junit</artifactId>
+      <version>1.2.5</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>cucumber-core</artifactId>
+          <groupId>info.cukes</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -175,22 +105,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>2.11.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>byte-buddy</artifactId>
-          <groupId>net.bytebuddy</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>byte-buddy-agent</artifactId>
-          <groupId>net.bytebuddy</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.5</version>
@@ -199,7 +113,7 @@
     <dependency>
       <groupId>com.palantir.docker.compose</groupId>
       <artifactId>docker-compose-rule-junit4</artifactId>
-      <version>0.33.0</version>
+      <version>0.32.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -228,30 +142,26 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.11.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>byte-buddy</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>byte-buddy-agent</artifactId>
+          <groupId>net.bytebuddy</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>objenesis</artifactId>
+          <groupId>org.objenesis</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
-  <properties>
-    <curator.version>2.3.0</curator.version>
-    <snakeyaml.version>1.18</snakeyaml.version>
-    <apache.solr.version>6.5.1</apache.solr.version>
-    <gson.google.version>2.8.1</gson.google.version>
-    <commons.lang3.version>3.5</commons.lang3.version>
-    <archaius.version>0.7.5</archaius.version>
-    <umbrella.version>0.0.1</umbrella.version>
-    <storm.topology>com.orwellg.yggdrasil.party.cdc.topology.CDCPartyTopology</storm.topology>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <junit.version>4.12</junit.version>
-    <commons.io.version>2.5</commons.io.version>
-    <avro.version>1.8.2</avro.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <kafka.clients.version>0.11.0.0</kafka.clients.version>
-    <storm.version>1.1.0</storm.version>
-    <cassandra.version>3.3.0</cassandra.version>
-    <cucumber.version>1.2.5</cucumber.version>
-    <log4j.version>2.8.2</log4j.version>
-    <org.apache.codec.version>1.10</org.apache.codec.version>
-    <yggdrasil.version>0.0.1</yggdrasil.version>
-  </properties>
 </project>
 
