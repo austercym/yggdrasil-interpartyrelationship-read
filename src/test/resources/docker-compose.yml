@@ -1,0 +1,15 @@
+version: '3'
+services:
+  kafka:
+    image: spotify/kafka
+    environment:
+      ADVERTISED_HOST: 0.0.0.0
+      ADVERTISED_PORT: 9092
+    ports:
+      - "9092:9092"
+      - "2181:2181"
+  #TODO (tests will need to create schema automatically)
+  #mariadb:
+    #image: mariadb-with-schema-img
+    #ports:
+      #- "3306:3306"

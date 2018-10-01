@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug">
+	<Appenders>
+		<Console name="CONSOLE" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</Console>
+		<File name="TEMP" fileName="temp">
+			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</File>
+		<!-- 
+		<Kafka name="KAFKA" topic="log.1" syncsend="true" ignoreexceptions="false">
+			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
+      		<Property name="bootstrap.servers">localhost:9092,localhost:10092</Property>
+    	</Kafka>
+    	-->
+		<Async name="ASYNC">
+			<!-- <AppenderRef ref="KAFKA" /> -->
+			<AppenderRef ref="CONSOLE" />
+			<!-- <AppenderRef ref="TEMP" />  -->
+		</Async>
+	</Appenders>
+	<Loggers>
+		<Logger name="org.apache.kafka" level="INFO">
+			<AppenderRef ref="ASYNC" />
+		</Logger>
+		<Logger name="org.apache.storm" level="INFO">
+			<AppenderRef ref="ASYNC" />
+		</Logger>
+		<Root level="INFO">
+			<AppenderRef ref="ASYNC" />
+		</Root>
+	</Loggers>
+</Configuration>

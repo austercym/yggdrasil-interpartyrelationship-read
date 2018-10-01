@@ -1,0 +1,17 @@
+version: '3'
+services:
+  kafka:
+    image: spotify/kafka
+    environment:
+      ADVERTISED_HOST: 0.0.0.0
+      ADVERTISED_PORT: 9092
+    ports:
+      - "9092:9092"
+      - "2181:2181"
+  scylla:
+     image: scylladb/scylla
+     environment:
+       ADVERTISED_HOST: 0.0.0.0
+       ADVERTISED_PORT: 9042
+     ports:
+       - "9042:9042"
