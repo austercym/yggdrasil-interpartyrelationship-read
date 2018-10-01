@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-FILE=yggdrasil-interpartyrelationship-read-0.0.1-SNAPSHOT.jar
+FILE=yggdrasil-interpartyrelationship-read-0.0.2-SNAPSHOT.jar
 TOPOLOGY=yggdrasil-interpartyrelationship-read
 MAIN=com.orwellg.yggdrasil.interpartyrelationship.topology.ReadInterpartyRelationshipTopology
 PROFILE=deploy
