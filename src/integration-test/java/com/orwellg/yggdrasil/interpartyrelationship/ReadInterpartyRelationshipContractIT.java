@@ -74,7 +74,7 @@ public class ReadInterpartyRelationshipContractIT {
 		zk.setZkProp("/com/orwellg/yggdrasil/scylla/yggdrassil.scylla.keyspace", scyllaKeyspace);
 
 		String uniqueIdClusterSuffix = "IPAGOO";
-		zk.setZkProp(UniqueIDGenerator.CLUSTER_SUFFIX_ZNODE, uniqueIdClusterSuffix);
+		//zk.setZkProp(UniqueIDGenerator.CLUSTER_SUFFIX_ZNODE, uniqueIdClusterSuffix);
 
 		// #bootstrap kafka servers:
 		zk.setZkProp("/com/orwellg/yggdrasil/topologies-defaults/kafka-bootstrap-host", bootstrapHosts);

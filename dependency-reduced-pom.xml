@@ -3,7 +3,7 @@
   <parent>
     <artifactId>super-pom-read</artifactId>
     <groupId>com.orwellg.yggdrasil</groupId>
-    <version>0.0.3</version>
+    <version>0.1.1</version>
     <relativePath>pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -59,106 +59,8 @@
           <groupId>ring-cors</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>disruptor</artifactId>
-          <groupId>com.lmax</groupId>
-        </exclusion>
-        <exclusion>
           <artifactId>servlet-api</artifactId>
           <groupId>javax.servlet</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>info.cukes</groupId>
-      <artifactId>cucumber-java8</artifactId>
-      <version>1.2.5</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>cucumber-java</artifactId>
-          <groupId>info.cukes</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>info.cukes</groupId>
-      <artifactId>cucumber-junit</artifactId>
-      <version>1.2.5</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>cucumber-core</artifactId>
-          <groupId>info.cukes</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>hamcrest-core</artifactId>
-          <groupId>org.hamcrest</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.5</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.palantir.docker.compose</groupId>
-      <artifactId>docker-compose-rule-junit4</artifactId>
-      <version>0.32.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>docker-compose-rule-core</artifactId>
-          <groupId>com.palantir.docker.compose</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.dmonix.junit</groupId>
-      <artifactId>zookeeper-junit</artifactId>
-      <version>1.2</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>java-scala-utils</artifactId>
-          <groupId>org.dmonix.functional</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>io-util</artifactId>
-          <groupId>org.dmonix.util</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>junit-extensions</artifactId>
-          <groupId>org.dmonix.junit</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>2.11.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>byte-buddy</artifactId>
-          <groupId>net.bytebuddy</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>byte-buddy-agent</artifactId>
-          <groupId>net.bytebuddy</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>objenesis</artifactId>
-          <groupId>org.objenesis</groupId>
         </exclusion>
       </exclusions>
     </dependency>
