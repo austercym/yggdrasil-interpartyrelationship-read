@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -71,7 +72,10 @@ public class ReadInterpartyRelationshipTopologyRequestSender {
 
 	public Object requestAndWaitResponseInterpartyRelationship(InterpartyRelationshipEvents eventType, String id, TopologyConfig config) {
 		
-		KafkaConsumer<String, String> consumer = SimpleKafkaConsumerProducerFactory.createConsumer(config.getKafkaConfig());
+		Properties additionalProps = new Properties();
+		// earliest to make sure consumer does not miss message if it takes time to be assigned a partition
+		additionalProps.setProperty("auto.offset.reset", "earliest");
+		KafkaConsumer<String, String> consumer = SimpleKafkaConsumerProducerFactory.createConsumer(config.getKafkaConfig(), additionalProps);
 		Producer<String, String> producer = SimpleKafkaConsumerProducerFactory.createProducer(config.getKafkaConfig());
 
 		// Generate event

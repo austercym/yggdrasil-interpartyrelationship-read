@@ -67,6 +67,9 @@ public class ReadInterpartyRelationshipContractIT {
 
 		ZooKeeperHelper zk = new ZooKeeperHelper(client);
 
+		// create /lagertha/conf.PROD.root /com/orwellg
+		zk.setZkProp("/lagertha/conf.PROD.root", "/com/orwellg");
+
 		// Set scylla config
 
 		zk.setZkProp("/com/orwellg/yggdrasil/scylla/yggdrassil.scylla.node.list", scyllaNodes);
@@ -93,9 +96,9 @@ public class ReadInterpartyRelationshipContractIT {
 		LocalCluster cluster = new LocalCluster();
 		ReadInterpartyRelationshipTopology.loadTopologyInStorm(cluster);
 		
+		// Needed for scylla to start up
 		Thread.sleep(10000);
-		
-		ScyllaManager man = ScyllaManager.getInstance(scyllaNodes);
+		ScyllaManager man = ScyllaManager.getInstance(scyllaNodes, null);
 		ses = man.getCluster().connect();
 				
 		ScyllaDbHelper scyllaDbHelper = new ScyllaDbHelper(ses);
