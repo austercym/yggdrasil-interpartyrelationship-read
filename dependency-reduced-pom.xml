@@ -3,14 +3,36 @@
   <parent>
     <artifactId>super-pom-read</artifactId>
     <groupId>com.orwellg.yggdrasil</groupId>
-    <version>0.1.1</version>
+    <version>0.1.2-SNAPSHOT</version>
     <relativePath>pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>yggdrasil-interpartyrelationship-read</artifactId>
   <name>yggdrasil-interpartyrelationship-read</name>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.amashchenko.maven.plugin</groupId>
+        <artifactId>gitflow-maven-plugin</artifactId>
+        <version>1.9.0</version>
+        <configuration />
+      </plugin>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
   <dependencies>
     <dependency>
       <groupId>org.apache.storm</groupId>

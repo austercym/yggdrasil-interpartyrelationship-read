@@ -12,6 +12,7 @@ import org.apache.storm.generated.StormTopology;
 import com.orwellg.umbrella.commons.storm.config.topology.TopologyConfig;
 import com.orwellg.umbrella.commons.storm.config.topology.TopologyConfigFactory;
 import com.orwellg.umbrella.commons.storm.topology.TopologyFactory;
+import com.orwellg.umbrella.commons.storm.topology.component.base.AbstractTopologyMain;
 import com.orwellg.umbrella.commons.storm.topology.component.bolt.EventErrorBolt;
 import com.orwellg.umbrella.commons.storm.topology.component.bolt.KafkaEventGeneratorBolt;
 import com.orwellg.umbrella.commons.storm.topology.component.spout.KafkaSpout;
@@ -42,7 +43,7 @@ import com.orwellg.yggdrasil.interpartyrelationship.topology.bolts.ReadInterpart
  * @author c.friaszapater
  *
  */
-public class ReadInterpartyRelationshipTopology {
+public class ReadInterpartyRelationshipTopology extends AbstractTopologyMain {
 
 
 	private static final String INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME = "yggdrasil-interpartyrelationship-read";
@@ -178,16 +179,11 @@ public class ReadInterpartyRelationshipTopology {
 		LOG.info("{} Topology created, submitting it to storm...", INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME);
 
 		// Create the basic config and upload the topology
-		Config conf = new Config();
-		conf.setDebug(false);
-		conf.setMaxTaskParallelism(config.getTopologyMaxTaskParallelism());
-		conf.setNumWorkers(config.getTopologyNumWorkers());
-
 		if (localCluster != null) {
-			localCluster.submitTopology(INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME, conf, topology);
+			localCluster.submitTopology(INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME, config(config), topology);
 			LOG.info("{} Topology submitted to storm (LocalCluster).", INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME);
 		} else {
-			StormSubmitter.submitTopology(INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME, conf, topology);
+			StormSubmitter.submitTopology(INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME, config(config), topology);
 			LOG.info("{} Party Topology submitted to storm (StormSubmitter).", INTERPARTYRELATIONSHIP_READ_TOPOLOGY_NAME);
 		}
 	}

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>yggdrasil-interpartyrelationship-read</artifactId>
-	<version>0.0.1</version>
+	<version>0.1.0</version>
 	<packaging>jar</packaging>
 
 	<name>yggdrasil-interpartyrelationship-read</name>
@@ -12,8 +12,37 @@
 	<parent>
 		<groupId>com.orwellg.yggdrasil</groupId>
 		<artifactId>super-pom-read</artifactId>
-		<version>0.1.1</version>
+		<version>0.2.0</version>
 		<relativePath></relativePath>
 	</parent>
-	
+
+	<build>
+		<plugins>
+			<!-- Release management ( https://github.com/aleksandr-m/gitflow-maven-plugin
+				) [NEXG-3731] -->
+			<plugin>
+				<groupId>com.amashchenko.maven.plugin</groupId>
+				<artifactId>gitflow-maven-plugin</artifactId>
+				<version>1.9.0</version>
+				<configuration>
+					<!-- optional configuration -->
+				</configuration>
+			</plugin>
+			<!-- Generate sources jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

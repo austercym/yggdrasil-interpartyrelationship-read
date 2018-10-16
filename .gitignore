@@ -53,7 +53,7 @@ hs_err_pid*# Compiled class file
 hs_err_pid*
 
 # Eclipse
-.classpath
+#.classpath
 .project
 .settings/
 
@@ -63,3 +63,4 @@ hs_err_pid*
 # Maven
 log/
 target/
+/dependency-reduced-pom.xml
