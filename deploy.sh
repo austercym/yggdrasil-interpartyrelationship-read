@@ -55,6 +55,9 @@ if [ -z "${force}" ]; then
 	esac
 fi
 
+# dir where this script is located
+dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
 JAR=yggdrasil-interpartyrelationship-read-$version.jar
 
 TOPOLOGY=yggdrasil-interpartyrelationship-read
@@ -70,6 +73,10 @@ if [ $env = "SID" ]; then
 elif [ $env = "UAT" ]; then
 	NIMBUS=hdf-group2-1.node.consul
 	ZOOKEEPER=hdf-group2-0.node.consul:2181,hdf-group2-1.node.consul:2181,hdf-group4-2.node.consul:2181
+elif [ $env = "PROD" ]; then
+	NIMBUS=hdf-g1-1.node.consul
+	ZOOKEEPER=hdf-g1-0.node.consul:2181,hdf-g1-1.node.consul:2181,hdf-g1-2.node.consul:2181
+	env=IO
 else
 	usage
 fi
@@ -81,6 +88,5 @@ if [ ! -f target/$JAR ]; then
   echo "target/$JAR not found"
   exit 1
 fi
-
-scp target/$JAR $SERVERUSER@$server:$SERVERDIR$JAR
-ssh $SERVERUSER@$server "sudo -H -u $DEPLOYUSER bash -c 'cd /home/$DEPLOYUSER; pwd; kinit -kt /etc/security/keytabs/$DEPLOYUSER.keytab $DEPLOYUSER@ORWELLG.SID; storm kill $TOPOLOGY -c nimbus.host=$NIMBUS; sleep 20s; storm jar /tmp/$JAR $MAIN $ZOOKEEPER -c nimbus.host=$NIMBUS;exit'"
+scp $dir/target/$JAR $serverUser@$server:$SERVERDIR$JAR
+ssh $serverUser@$server "chmod o+r /tmp/$JAR; sudo -H -u $DEPLOYUSER bash -c 'cd /home/$DEPLOYUSER; pwd; kinit -kt /etc/security/keytabs/$DEPLOYUSER.keytab $DEPLOYUSER@ORWELLG.$env; storm kill $TOPOLOGY -c nimbus.host=$NIMBUS; sleep 20s; storm jar /tmp/$JAR $MAIN $ZOOKEEPER -c nimbus.host=$NIMBUS;exit'"
