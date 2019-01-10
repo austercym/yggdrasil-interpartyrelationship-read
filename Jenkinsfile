@@ -19,6 +19,11 @@ pipeline {
 
     }
 
+	parameters {
+        string(name: 'HAS_CHANGES', defaultValue: 'N')
+        string(name: 'IS_MASTER', defaultValue: 'N')
+    }
+
     stages {
 
         stage('Pipeline setup') {
@@ -80,8 +85,15 @@ pipeline {
                           //  def end = '-SNAPSHOT'
                             descriptor.pomFile = pomPath
                             def scmVars = checkout scm
-                            if (!( scmVars.GIT_BRANCH == 'master'))
+                            if (!( scmVars.GIT_BRANCH == 'master'))  {
                                 artifactVersion = artifactVersion + '-SNAPSHOT'
+                            }
+                            if ( scmVars.GIT_BRANCH == 'master')  {
+                                env.IS_MASTER='Y'
+                            }
+                            if (scmVars.GIT_COMMIT != scmVars.GIT_PREVIOUS_COMMIT) {
+                                env.HAS_CHANGES='Y'
+                            }                            
                             descriptor.version = artifactVersion
                             descriptor.transform()
 
@@ -100,6 +112,10 @@ pipeline {
         }
 
         stage('Unit test') {
+            when {
+        		expression { env.HAS_CHANGES == 'Y' }
+        		beforeAgent true
+      		}
             agent{
                 docker {
                     image 'maven:3-alpine'
@@ -125,6 +141,10 @@ pipeline {
         }
 
         stage('Build') {
+            when {
+        		expression { env.HAS_CHANGES == 'Y' }
+        		beforeAgent true
+      		}
             agent{
                 docker {
                     image 'maven:3-alpine'
@@ -147,6 +167,10 @@ pipeline {
         }
 
         stage('Publish') {
+            when {
+        		expression { env.HAS_CHANGES == 'Y' }
+        		beforeAgent true
+      		}
             agent{
                 docker {
                     image 'maven:3-alpine'
@@ -167,6 +191,10 @@ pipeline {
 
 
        stage('Deploy') {
+            when {
+        		expression { env.HAS_CHANGES == 'Y' && env.IS_MASTER == 'N' }
+        		beforeAgent true
+      		}
             steps {
                 script {
                     pom = readMavenPom file: pomPath
